@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './App.css';
 
@@ -8,7 +8,7 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const fetchRecipes = async () => {
+  const fetchRecipes = useCallback(async () => {
     if (!ingredient) {
       setError('Please enter an ingredient');
       return;
@@ -29,7 +29,7 @@ const App = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [ingredient]);
 
   useEffect(() => {
     const handleKeyPress = (event) => {
@@ -41,7 +41,13 @@ const App = () => {
     return () => {
       document.removeEventListener('keydown', handleKeyPress);
     };
-  }, [ingredient]);
+  }, [fetchRecipes]);
+
+  useEffect(() => {
+    return () => {
+      axios.CancelToken.source().cancel();
+    };
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -63,7 +69,7 @@ const App = () => {
         <div className="relative w-full max-w-md">
           <input
             type="text"
-            placeholder="Search recipes"
+            placeholder="Search a recipe by ingredient..."
             value={ingredient}
             onChange={(e) => setIngredient(e.target.value)}
             className="w-full py-3 pl-12 pr-4 border-2 border-orange-500 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-orange-400"
